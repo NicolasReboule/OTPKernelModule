@@ -1,0 +1,9 @@
+# Ignore all compiled object files.
+*.o
+*.ko
+*.mod.c
+.*.cmd
+*symvers
+*.order
+*.btf
+*.mod

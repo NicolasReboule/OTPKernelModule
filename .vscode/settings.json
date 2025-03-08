@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "printk.h": "c",
+        "module.h": "c",
+        "crypto.h": "c",
+        "completion.h": "c",
+        "scatterlist.h": "c",
+        "err.h": "c",
+        "hash.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled",
+    "editor.tabSize": 8
+}
