@@ -7,3 +7,4 @@
 *.order
 *.btf
 *.mod
+src/.module.o.d
