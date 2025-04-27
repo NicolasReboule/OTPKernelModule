@@ -23,13 +23,12 @@ void set_counter_buffer(unsigned int counter, unsigned char *counter_buf)
 static int _set_algo(const char *algo)
 {
         if (strcmp(algo, HMAC_SHA1) == 0) {
-            return 20; // SHA-1 produces 20-byte hashes
+                return 20; // SHA-1 produces 20-byte hashes
         } else if (strcmp(algo, HMAC_SHA256) == 0) {
-            return 32; // SHA-256 produces 32-byte hashes
-        } else {
-            printk(KERN_ERR "Unsupported algorithm\n");
-            return -EINVAL;
+                return 32; // SHA-256 produces 32-byte hashes
         }
+        printk(KERN_ERR "Unsupported algorithm\n");
+        return -EINVAL;
 }
 
 /**
@@ -44,8 +43,8 @@ static int _allocate_hmac_transform(struct crypto_ahash **tfm, const char *algo)
         *tfm = crypto_alloc_ahash(algo, 0, 0);
 
         if (IS_ERR(*tfm)) {
-            printk(KERN_ERR "Failed to allocate hmac transform\n");
-            return PTR_ERR(*tfm);
+                printk(KERN_ERR "Failed to allocate hmac transform\n");
+                return PTR_ERR(*tfm);
         }
         return 0;
 }
@@ -118,8 +117,8 @@ static int _digest_hmac_request(struct ahash_request *req, unsigned char *output
         int ret = crypto_ahash_digest(req);
 
         if (ret) {
-            printk(KERN_ERR "HMAC computation failed: %d\n", ret);
-            return ret;
+                printk(KERN_ERR "HMAC computation failed: %d\n", ret);
+                return ret;
         }
 
         printk(KERN_INFO "HMAC: ");

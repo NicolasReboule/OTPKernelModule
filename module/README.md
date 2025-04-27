@@ -8,7 +8,6 @@ It demonstrates how to:
 
 - Implement a **kernel module**
 - Register a **device** for user-space communication
-- Use **procfs** for user-space interaction
 - Use the **Crypto API** for cryptographic operations
 
 This project is designed for **kernel module development** and should be compiled within a Linux kernel environment.
@@ -84,7 +83,7 @@ $ cat /proc/otp
 
 **Salocin** - [GitHub](https://github.com/...)
 
-**...** - [GitHub](https://github.com/...)
+**Nekomay** - [GitHub](https://github.com/...)
 
 ## License
 

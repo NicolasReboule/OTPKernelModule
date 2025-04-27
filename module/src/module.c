@@ -21,8 +21,6 @@ static int __init otp_init_module(void)
 
         pr_info("Loading OTP Module Manager\n");
 
-        hotp_algo(HMAC_SHA1, "12345678901234567890", "test");
-
         // Allocate character device numbers
         ret = alloc_chrdev_region(&dev, 0, MAX_DEVICES, DEVICE_NAME);
         if (ret < 0) {
@@ -37,33 +35,6 @@ static int __init otp_init_module(void)
                 unregister_chrdev_region(MKDEV(major, 0), MAX_DEVICES);
                 pr_err("Failed to create device class\n");
                 return PTR_ERR(otp_class);
-        }
-
-        // Create HOTP device
-        if (create_device(0, &(type_t){.is_totp = false, .is_verify = false}) < 0) {
-                pr_err("Failed to create HOTP device\n");
-                class_destroy(otp_class);
-                unregister_chrdev_region(MKDEV(major, 0), MAX_DEVICES);
-                return -1;
-        }
-
-        // Create TOTP device
-        if (create_device(1, &(type_t){.is_totp = true, .is_verify = false}) < 0) {
-                pr_err("Failed to create TOTP device\n");
-                delete_device(0);
-                class_destroy(otp_class);
-                unregister_chrdev_region(MKDEV(major, 0), MAX_DEVICES);
-                return -1;
-        }
-
-        // Create Verify device
-        if (create_device(2, &(type_t){.is_totp = false, .is_verify = true}) < 0) {
-                pr_err("Failed to create Verify device\n");
-                delete_device(0);
-                delete_device(1);
-                class_destroy(otp_class);
-                unregister_chrdev_region(MKDEV(major, 0), MAX_DEVICES);
-                return -1;
         }
 
         pr_info("OTP Module Manager loaded successfully\n");

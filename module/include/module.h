@@ -5,8 +5,8 @@
 ** otp.h
 ** Header file for OTP module
 */
-#ifndef OTP_H
-        #define OTP_H
+#ifndef MODULE_H
+        #define MODULE_H
 
         #include <linux/module.h>
         #include <linux/printk.h>
@@ -30,4 +30,4 @@
          */
         static void __exit otp_exit_module(void);
 
-#endif /* !OTP_H_*/
+#endif /* !MODULE_H_*/

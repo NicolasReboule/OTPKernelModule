@@ -1,0 +1,155 @@
+/*
+** EPITECH PROJECT, 2025
+** OTP
+** File description:
+** otp.h
+** Header file for OTP module
+*/
+#ifndef OTP_H
+        #define OTP_H
+
+        #include "crypto.h"
+
+        #include <string.h>
+
+        #define OTP_IOC_MAGIC "SysMy|"
+
+        #define OTP_INPUT_MAX_LEN 256
+
+        #define IOCTL_CREATE_OTP _IOW(OTP_IOC_MAGIC, 1, struct otp_ioctl_create_s)
+        #define IOCTL_UPDATE_OTP _IOW(OTP_IOC_MAGIC, 3, struct otp_ioctl_update)
+        #define IOCTL_DELETE_OTP _IOW(OTP_IOC_MAGIC, 4, unsigned int)
+        #define IOCTL_VALIDATE_OTP _IOW(OTP_IOC_MAGIC, 2, unsigned int)
+
+        /**
+         * @brief OTP IOCTL structure for create command
+         * All fields are required.
+         *
+         * @param is_totp Flag indicating if the OTP is TOTP or HOTP
+         * @param algo Algorithm to use (e.g. HMAC_SHA1 or HMAC_SHA256).
+         * @param secret OTP secret key
+         * @param timestep Time step for TOTP (only for TOTP)
+         */
+        struct otp_ioctl_create_s {
+                bool is_totp;
+                char algo[16];
+                char secret[SECRET_MAX_LEN];
+                int timestep;
+        };
+
+        /**
+         * @brief OTP IOCTL structure for update command
+         * If any of the fields are not set, they will not be updated.
+         *
+         * @param algo Algorithm to use (e.g. HMAC_SHA1 or HMAC_SHA256).
+         * @param secret OTP secret key
+         * @param timestep Time step for TOTP (only for TOTP)
+         */
+        struct otp_ioctl_update_s {
+                char algo[16];
+                char secret[SECRET_MAX_LEN];
+                int timestep;
+        };
+
+        struct otp_s {
+                unsigned int index;
+                struct cdev cdev;
+
+                char *algo;
+
+                char secret[SECRET_MAX_LEN];
+                int counter;
+                int timestep;
+
+                bool is_totp;
+                bool is_validate;
+        };
+
+        /**
+         * @brief OTP structure
+         * This structure is used to manage the OTP device.
+         *
+         * @param cdev Character device structure
+         * @param algo Algorithm used for OTP generation
+         * @param secret OTP secret key
+         * @param counter Counter for HOTP
+         * @param timestep Time step for TOTP
+         * @param is_totp Flag indicating if the device is TOTP or HOTP
+         * @param is_verify Flag indicating if the device is in verify mode
+         * @param is_locked Flag indicating if the device is locked
+         */
+        typedef struct otp_s otp;
+
+        /**
+         * @brief Manage open behavior of the device
+         *
+         * @param counter Counter to set.
+         * @param counter_buf Buffer to set.
+         *
+         * @return int Return code (0 success, otherwise error)
+         */
+        int otp_open(struct inode *inode, struct file *file);
+
+        /**
+         * @brief Manage read behavior of the device
+         *
+         * @param file File structure
+         * @param buf Buffer to read into
+         * @param len Length of the buffer
+         * @param off Offset in the file
+         *
+         * @return ssize_t Number of bytes read
+         */
+        int otp_read(struct file *file, char __user *buf, size_t len, loff_t *off);
+
+        /**
+         * @brief Manage write behavior of the device
+         *
+         * @param file File structure
+         * @param buf Buffer to write from
+         * @param len Length of the buffer
+         * @param off Offset in the file
+         *
+         * @return int Return code (0 success, otherwise error)
+         */
+        int otp_write(struct file *file, const char __user *buf, size_t len, loff_t *off);
+
+        /**
+         * @brief Manage ioctl of the device
+         *
+         * @param file File structure
+         * @param cmd Command to execute
+         * @param arg Argument for the command
+         *
+         * @return long Return code (0 success, otherwise error)
+         */
+        int otp_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
+
+        /**
+         * @brief Generate OTP code using the specified algorithm and key
+         *
+         * @param algo Algorithm to use (e.g. HMAC_SHA1 or HMAC_SHA256).
+         * @param key Key to use.
+         * @param counter Counter to use for HOTP.
+         * @param out_code Buffer to store the generated OTP code.
+         *
+         * @return int Return code (0 success, otherwise error)
+         */
+        int otp_generate_code(const char *algo, const char *key, unsigned int counter, char *out_code);
+
+        /**
+         * @brief OTP structure to manage IOCTL behavior
+         * .owner = THIS_MODULE,
+         * .open = otp_open,
+         * .read = otp_read,
+         * .unlocked_ioctl ,
+         */
+        extern const struct file_operations otp_fops = {
+                .owner = THIS_MODULE,
+                .open = otp_open,
+                .read = otp_read,
+                .write = otp_write,
+                .unlocked_ioctl = otp_ioctl,
+        };
+
+#endif /* !OTP_H_ */
