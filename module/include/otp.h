@@ -10,7 +10,8 @@
 
         #include "crypto.h"
 
-        #include <string.h>
+        #include <linux/string.h>
+        #include <linux/cdev.h>
 
         #define OTP_IOC_MAGIC "SysMy|"
 
@@ -81,6 +82,29 @@
         typedef struct otp_s otp;
 
         /**
+         * @brief Create an OTP structure
+         * This function creates an OTP structure and initializes it with the given parameters.
+         *
+         * @param create_otp_data Pointer to the OTP creation data structure
+         * @param is_validate Flag indicating if the OTP is in validate mode
+         *
+         * @return otp Pointer to the created OTP structure
+         */
+        otp *create_otp(struct otp_ioctl_create_s *create_otp_data, bool is_validate);
+
+        /**
+         * @brief Update an OTP structure
+         * This function updates the OTP structure with the given parameters.
+         *
+         * @param update_otp_data Pointer to the OTP update data structure
+         * @param is_validate Flag indicating if the OTP is in validate mode
+         *
+         * @return otp Pointer to the updated OTP structure
+         */
+        otp *update_otp(struct otp_ioctl_update_s *update_otp_data);
+
+
+        /**
          * @brief Manage open behavior of the device
          *
          * @param counter Counter to set.
@@ -144,12 +168,13 @@
          * .read = otp_read,
          * .unlocked_ioctl ,
          */
-        extern const struct file_operations otp_fops = {
+        const struct file_operations otp_fops = {
                 .owner = THIS_MODULE,
                 .open = otp_open,
                 .read = otp_read,
                 .write = otp_write,
                 .unlocked_ioctl = otp_ioctl,
         };
+
 
 #endif /* !OTP_H_ */

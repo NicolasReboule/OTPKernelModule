@@ -6,8 +6,6 @@ static DEFINE_MUTEX(code_lock);
 static LIST_HEAD(otp_device_list);
 static LIST_HEAD(otp_code_list);
 
-
-
 int add_otp_device(otp *dev)
 {
     otp_list *node;

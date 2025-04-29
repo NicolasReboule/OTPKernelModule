@@ -1,4 +1,4 @@
-#include "../include/otp.h"
+#include "../include/module.h"
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("SysMy|");
@@ -22,7 +22,7 @@ static int __init otp_init_module(void)
         pr_info("Loading OTP Module Manager\n");
 
         // Allocate character device numbers
-        ret = alloc_chrdev_region(&dev, 0, MAX_DEVICES, DEVICE_NAME);
+        ret = alloc_chrdev_region(&dev, 0, MAX_OTP_DEVICES, DEVICE_OTP_NAME);
         if (ret < 0) {
                 pr_err("Failed to allocate character device numbers\n");
                 return ret;
@@ -30,9 +30,9 @@ static int __init otp_init_module(void)
         major = MAJOR(dev);
 
         // Create device class
-        otp_class = class_create(CLASS_NAME);
+        otp_class = class_create(CLASS_OTP_NAME);
         if (IS_ERR(otp_class)) {
-                unregister_chrdev_region(MKDEV(major, 0), MAX_DEVICES);
+                unregister_chrdev_region(MKDEV(major, 0), MAX_OTP_DEVICES);
                 pr_err("Failed to create device class\n");
                 return PTR_ERR(otp_class);
         }
@@ -43,7 +43,7 @@ static int __init otp_init_module(void)
 
 static void __exit otp_exit_module(void)
 {
-        opt_node_t *node, *tmp;
+        otp_list *node, *tmp;
 
         pr_info("Unloading OTP Module Manager\n");
 
@@ -57,7 +57,7 @@ static void __exit otp_exit_module(void)
         mutex_unlock(&otp_device_lock);
 
         class_destroy(otp_class);
-        unregister_chrdev_region(MKDEV(major, 0), MAX_DEVICES);
+        unregister_chrdev_region(MKDEV(major, 0), MAX_OTP_DEVICES);
 
         pr_info("OTP Module Manager unloaded\n");
 }

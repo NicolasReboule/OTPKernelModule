@@ -11,7 +11,7 @@
         #include <linux/module.h>
         #include <linux/printk.h>
 
-        #include "device.h"
+        #include "lists.h"
 
         /**
          * @brief Initialize the module with required components.

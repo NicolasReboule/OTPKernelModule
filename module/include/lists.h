@@ -2,13 +2,13 @@
 ** EPITECH PROJECT, 2025
 ** OTP
 ** File description:
-** otp.h
-** Header file for OTP module
+** lists.h
+** Header file for Lists
 */
 #ifndef LISTS_H
         #define LISTS_H
 
-        #include "otp.h"
+        #include "device.h"
 
         #include <linux/list.h>
         #include <linux/slab.h>
@@ -17,14 +17,16 @@
         struct otp_device_node_s {
                 otp *otp;
                 struct list_head list;
-        }
+        };
 
         struct otp_code_node_s {
                 char *code;
                 struct list_head list;
-        }
+        };
 
-        typedef struct otp_device_node_s otp_list;
+        typedef struct otp_device_node_s otp_node;
+
+        typedef struct otp_code_node_s code_node;
 
         int save_otp_code(otp *dev, char *buf, size_t len);
         int validate_otp_code(otp *dev, char *buf, size_t len);
