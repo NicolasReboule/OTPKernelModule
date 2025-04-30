@@ -20,8 +20,8 @@
         #define DEVICE_OTP_NAME "otp"
         #define CLASS_OTP_NAME "otp_class"
 
-        extern int major; // Major number for the devices
-        extern struct class *otp_class; // Device class for OTP devices
+        int major = 64; // Major number for the devices
+        struct class *otp_class; // Device class for OTP devices
         extern const struct file_operations otp_fops; // File operations for OTP devices
 
         /**

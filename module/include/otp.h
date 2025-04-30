@@ -170,7 +170,7 @@
          * .read = otp_read,
          * .unlocked_ioctl ,
          */
-        extern const struct file_operations otp_fops;
+        const struct file_operations otp_fops;
 
 
 #endif /* !OTP_H_ */

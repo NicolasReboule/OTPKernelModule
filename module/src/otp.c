@@ -1,6 +1,6 @@
 #include "../include/otp.h"
 
-static int major = 64;
+extern int major;
 extern struct class *otp_class;
 
 otp *create_otp(struct otp_ioctl_create_s *create_otp_data, bool is_validate)
