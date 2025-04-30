@@ -1,5 +1,8 @@
 #include "../include/device.h"
 
+int major = 64;
+struct class *otp_class;
+
 otp *create_otp_device(unsigned int index, struct otp_ioctl_create_s *otp_data)
 {
     otp *new_device;

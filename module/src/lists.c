@@ -6,8 +6,6 @@ static DEFINE_MUTEX(otp_code_lock);
 static LIST_HEAD(otp_device_list);
 static LIST_HEAD(otp_code_list);
 
-extern int major;
-
 /**
  * @brief Initialize the OTP device and code lists.
  *
