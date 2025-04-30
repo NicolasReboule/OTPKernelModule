@@ -28,13 +28,10 @@
          * @brief Create an OTP device.
          *
          * @param index The index of the device (used for minor number and device name).
-         * @param algo The algorithm to use (e.g., "HMAC_SHA1").
-         * @param secret The secret key for the OTP device.
-         * @param timestep The timestep for TOTP devices (ignored for HOTP).
-         * @param is_totp Whether the device is a TOTP (true) or HOTP (false).
+         * @param otp_data Pointer to the OTP creation data structure.
          * @return Pointer to the created OTP device, or NULL on failure.
          */
-        otp *create_otp_device(unsigned int index, const char *algo, const char *secret, int timestep, bool is_totp);
+        otp *create_otp_device(unsigned int index, struct otp_ioctl_create_s *otp_data);
 
         /**
          * @brief Delete an OTP device.

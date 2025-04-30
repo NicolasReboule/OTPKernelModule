@@ -22,7 +22,7 @@ otp *create_otp_device(unsigned int index, struct otp_ioctl_create_s *otp_data)
         return NULL;
     }
 
-    char *device_type = is_totp ? "totp" : "hotp";
+    char *device_type = otp_data->is_totp ? "totp" : "hotp";
 
     // Create the device node in /dev
     device = device_create(otp_class, NULL, devt, NULL, "%s%d", device_type, index);

@@ -12,15 +12,17 @@
 
         #include <linux/string.h>
         #include <linux/cdev.h>
+        #include <linux/types.h>
 
-        #define OTP_IOC_MAGIC "SysMy|"
+        #define OTP_IOC_MAGIC 'K'
 
         #define OTP_INPUT_MAX_LEN 256
+        #define COUNTER_MAX_SIZE 8
 
         #define IOCTL_CREATE_OTP _IOW(OTP_IOC_MAGIC, 1, struct otp_ioctl_create_s)
-        #define IOCTL_UPDATE_OTP _IOW(OTP_IOC_MAGIC, 3, struct otp_ioctl_update)
-        #define IOCTL_DELETE_OTP _IOW(OTP_IOC_MAGIC, 4, unsigned int)
-        #define IOCTL_VALIDATE_OTP _IOW(OTP_IOC_MAGIC, 2, unsigned int)
+        #define IOCTL_UPDATE_OTP _IOW(OTP_IOC_MAGIC, 2, struct otp_ioctl_update_s)
+        #define IOCTL_DELETE_OTP _IOW(OTP_IOC_MAGIC, 3, unsigned int)
+        #define IOCTL_VALIDATE_OTP _IOW(OTP_IOC_MAGIC, 4, unsigned int)
 
         /**
          * @brief OTP IOCTL structure for create command
@@ -34,7 +36,7 @@
         struct otp_ioctl_create_s {
                 bool is_totp;
                 char algo[16];
-                char secret[SECRET_MAX_LEN];
+                char secret[64];
                 int timestep;
         };
 
@@ -48,7 +50,7 @@
          */
         struct otp_ioctl_update_s {
                 char algo[16];
-                char secret[SECRET_MAX_LEN];
+                char secret[64];
                 int timestep;
         };
 
@@ -58,7 +60,7 @@
 
                 char *algo;
 
-                char secret[SECRET_MAX_LEN];
+                char secret[64];
                 int counter;
                 int timestep;
 
@@ -77,7 +79,7 @@
          * @param timestep Time step for TOTP
          * @param is_totp Flag indicating if the device is TOTP or HOTP
          * @param is_verify Flag indicating if the device is in verify mode
-         * @param is_locked Flag indicating if the device is locked
+         * @param is_validate Flag indicating if the device is locked
          */
         typedef struct otp_s otp;
 
@@ -101,7 +103,7 @@
          *
          * @return otp Pointer to the updated OTP structure
          */
-        otp *update_otp(struct otp_ioctl_update_s *update_otp_data);
+        otp *update_otp(otp *otp, struct otp_ioctl_update_s *update_otp_data);
 
 
         /**
@@ -124,7 +126,7 @@
          *
          * @return ssize_t Number of bytes read
          */
-        int otp_read(struct file *file, char __user *buf, size_t len, loff_t *off);
+        long otp_read(struct file *file, char __user *buf, size_t len, loff_t *off);
 
         /**
          * @brief Manage write behavior of the device
@@ -136,7 +138,7 @@
          *
          * @return int Return code (0 success, otherwise error)
          */
-        int otp_write(struct file *file, const char __user *buf, size_t len, loff_t *off);
+        long otp_write(struct file *file, const char __user *buf, size_t len, loff_t *off);
 
         /**
          * @brief Manage ioctl of the device
@@ -147,7 +149,7 @@
          *
          * @return long Return code (0 success, otherwise error)
          */
-        int otp_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
+        long otp_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
 
         /**
          * @brief Generate OTP code using the specified algorithm and key
@@ -168,13 +170,7 @@
          * .read = otp_read,
          * .unlocked_ioctl ,
          */
-        const struct file_operations otp_fops = {
-                .owner = THIS_MODULE,
-                .open = otp_open,
-                .read = otp_read,
-                .write = otp_write,
-                .unlocked_ioctl = otp_ioctl,
-        };
+        extern const struct file_operations otp_fops;
 
 
 #endif /* !OTP_H_ */

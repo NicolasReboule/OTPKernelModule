@@ -4,38 +4,33 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("SysMy|");
 MODULE_DESCRIPTION("OTP Module Manager");
 
-int major;
-struct class *otp_class;
-LIST_HEAD(device_list);
-DEFINE_MUTEX(otp_device_lock);
-
-EXPORT_SYMBOL(otp_class);
-EXPORT_SYMBOL(otp_device_lock);
-EXPORT_SYMBOL(major);
-EXPORT_SYMBOL(device_list);
-
 static int __init otp_init_module(void)
 {
-        dev_t dev;
-        int ret;
+        if (initialize_otp_node_system() != 0) {
+                pr_err("Failed to initialize OTP system\n");
+                return -1;
+        }
+
+        const int code = hotp_algo(HMAC_SHA1, "secret", "1");
+
+        if (code < 0) {
+                pr_err("Failed to generate OTP code\n");
+                return -1;
+        }
+
+        pr_info("Generated OTP code: %d\n", code);
+
+        add_otp_code(code, 0);
+
+        code_node *check_code = find_otp_code(code, 0);
+        if (check_code) {
+                pr_info("Found OTP code %u for device %u\n", check_code->code, check_code->device_index);
+        } else {
+        pr_err("Code not found\n");
+        }
 
         pr_info("Loading OTP Module Manager\n");
 
-        // Allocate character device numbers
-        ret = alloc_chrdev_region(&dev, 0, MAX_OTP_DEVICES, DEVICE_OTP_NAME);
-        if (ret < 0) {
-                pr_err("Failed to allocate character device numbers\n");
-                return ret;
-        }
-        major = MAJOR(dev);
-
-        // Create device class
-        otp_class = class_create(CLASS_OTP_NAME);
-        if (IS_ERR(otp_class)) {
-                unregister_chrdev_region(MKDEV(major, 0), MAX_OTP_DEVICES);
-                pr_err("Failed to create device class\n");
-                return PTR_ERR(otp_class);
-        }
 
         pr_info("OTP Module Manager loaded successfully\n");
         return 0;
@@ -43,21 +38,23 @@ static int __init otp_init_module(void)
 
 static void __exit otp_exit_module(void)
 {
-        otp_list *node, *tmp;
+        // otp_node *node, *tmp;
 
         pr_info("Unloading OTP Module Manager\n");
 
-        mutex_lock(&otp_device_lock);
-        list_for_each_entry_safe(node, tmp, &device_list, list) {
-                list_del(&node->list);
-                device_destroy(otp_class, MKDEV(major, node->index));
-                cdev_del(&node->dev.cdev);
-                kfree(node);
-        }
-        mutex_unlock(&otp_device_lock);
+        delete_all_otp_codes();
 
-        class_destroy(otp_class);
-        unregister_chrdev_region(MKDEV(major, 0), MAX_OTP_DEVICES);
+        // mutex_lock(&otp_otp_device_lock);
+        // list_for_each_entry_safe(node, tmp, &device_list, list) {
+        //         list_del(&node->list);
+        //         device_destroy(otp_class, MKDEV(major, node->index));
+        //         cdev_del(&node->dev.cdev);
+        //         kfree(node);
+        // }
+        // mutex_unlock(&otp_otp_device_lock);
+
+        // class_destroy(otp_class);
+        // unregister_chrdev_region(MKDEV(major, 0), MAX_OTP_DEVICES);
 
         pr_info("OTP Module Manager unloaded\n");
 }
