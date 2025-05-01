@@ -1,38 +1,103 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
+#include "../include/client.h"
 
-int main(int argc, char *argv[])
+command commands[] = {
+        {"len", "returns string size", len},
+        {"capitalize", "returns capitalized string", capitalize},
+        {"upper", "returns uppercased string", to_uppercase},
+        {"lower", "returns lowercased string", to_lowercase},
+        {NULL, NULL, NULL}
+};
+
+void len(char *str)
 {
-        if (argc != 2) {
-                fprintf(stderr, "Usage: %s <string>\n", argv[0]);
-                return 1;
-        }
+        printf("%ld\n", strlen(str));
+}
 
+void capitalize(char *str)
+{
+        for (int i = 0; str[i]; i++)
+                if (str[i] >= 'A' && str[i] <= 'Z') 
+                        str[i] += 'a' - 'A';
+        str[0] -= 'a' - 'A';
+        printf("%s\n", str);
+}
+
+void to_uppercase(char *str)
+{
+        for (int i = 0; str[i]; i++)
+                if (str[i] >= 'a' && str[i] <= 'z') 
+                        str[i] -= 'a' - 'A';
+        printf("%s\n", str);
+}
+
+void to_lowercase(char *str)
+{
+        for (int i = 0; str[i]; i++)
+                if (str[i] >= 'A' && str[i] <= 'Z') 
+                        str[i] += 'a' - 'A';
+        printf("%s\n", str);
+}
+
+
+bool validate(char *otp)
+{
         int fd = open("/dev/otp-validator", O_RDWR);
         if (fd < 0) {
                 perror("Failed to open\n");
-                return -1;
+                return false;
         }
 
-        if (write(fd, argv[1], sizeof(argv[1])) < 0) {
+        if (write(fd, otp, sizeof(otp)) < 0) {
                 perror("Failed to write\n");
                 close(fd);
-                return -1;
+                return false;
         }
 
         char result[32];
         read(fd, &result, sizeof(result));
-        int code = atoi(result);
-        if (code)
-                printf("Congratulations\n");
-        else
-                printf("Oops\n");
         close(fd);
+        int code = atoi(result);
+        if (!code) {
+                fprintf(stderr, "Invalid otp\n");
+                return false;
+        }
+        return true;
+}
+
+void print_usage()
+{
+        fprintf(stderr, "Usage:\n");
+        fprintf(stderr, "\tclient <otp> <cmd> <str>\n");
+        fprintf(stderr, "\totp: Valid otp generated using OTP Manager Module\n");
+        fprintf(stderr, "\tcmd: Command to do\n");
+        fprintf(stderr, "\tstr: String that will be modified by the command\n");
+        fprintf(stderr, "\n\tCommand list:\n");
+        for (int i = 0; commands[i].name != NULL; i++)
+                fprintf(stderr, "\t\t%s: %s\n", commands[i].name, commands[i].desc);
+}
+
+void execute_command(char *cmd, char *str)
+{
+        for (int i = 0; commands[i].name != NULL; i++) {
+                if (strcmp(commands[i].name, cmd) == 0) {
+                        commands[i].function(str);
+                        return;
+                }
+        }
+        fprintf(stderr, "Invalid command\n");
+        print_usage();
+}
+
+int main(int argc, char *argv[])
+{
+        if (argc != 4) {
+                print_usage();
+                return 1;
+        }
+
+        if (!validate(argv[1]))
+                return 2;
+        execute_command(argv[2], argv[3]);
         // char cpy[60];
 
         // strcpy(cpy, argv[1]);
