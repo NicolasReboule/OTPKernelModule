@@ -15,6 +15,7 @@
         #include <linux/module.h>
 
         #include "otp.h"
+        #include "debugfs.h"
 
         #define MAX_OTP_DEVICES 64
         #define DEVICE_OTP_NAME "otp"
