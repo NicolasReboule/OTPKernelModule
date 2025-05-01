@@ -29,6 +29,10 @@
         extern int major; // Major number for the devices
         extern struct class *otp_class; // Device class for OTP devices
 
+        int create_devices(void);
+
+        void destroy_devices(void);
+
         /**
          * @brief Create an OTP device.
          *

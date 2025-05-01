@@ -11,4 +11,9 @@
         extern struct dentry *f_opt_list;
 
         extern const struct file_operations debugfs_fops;
+
+        int init_debugfs(void);
+
+        void destroy_debugfs(void);
+
 #endif /* !DEBUGFS_H */
