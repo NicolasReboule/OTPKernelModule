@@ -1,5 +1,9 @@
 #include "../include/device.h"
 
+const char *device_names[DEVICE_COUNT] = {"hotp", "totp", "validator"};
+struct cdev cdevs[DEVICE_COUNT];
+struct device *devices[DEVICE_COUNT];
+dev_t dev_num;
 int major = 64;
 struct class *otp_class;
 

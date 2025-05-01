@@ -19,7 +19,12 @@
         #define MAX_OTP_DEVICES 64
         #define DEVICE_OTP_NAME "otp"
         #define CLASS_OTP_NAME "otp_class"
+        #define DEVICE_COUNT 3
 
+        extern const char *device_names[DEVICE_COUNT];
+        extern struct cdev cdevs[DEVICE_COUNT];
+        extern struct device *devices[DEVICE_COUNT];
+        extern dev_t dev_num;
         extern int major; // Major number for the devices
         extern struct class *otp_class; // Device class for OTP devices
 
