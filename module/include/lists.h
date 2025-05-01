@@ -14,6 +14,11 @@
         #include <linux/slab.h>
         #include <linux/mutex.h>
 
+        #define DEFAULT_LIST_SIZE 10
+
+        extern struct list_head otp_code_list;
+        extern struct mutex otp_code_lock;
+
         struct otp_device_node_s {
                 otp *otp;
                 struct list_head list;
@@ -40,9 +45,12 @@
         otp *find_otp_device_by_index(unsigned int index);
         int delete_otp_device_by_index(unsigned int index);
 
+        int init_otp_list(void);
+        void print_list(void);
         int add_otp_code(unsigned int code, unsigned int device_index);
         code_node *find_otp_code(unsigned int code, unsigned int device_index);
         int delete_otp_code(unsigned int code, unsigned int device_index);
+        int delete_otp_code_by_index(unsigned int index, unsigned int device_index);
         void delete_all_otp_codes(void);
 
 #endif /* LISTS_H */

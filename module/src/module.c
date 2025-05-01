@@ -16,6 +16,15 @@ static int __init otp_init_module(void)
         }
 
         ret = create_devices();
+        if (ret < 0) {
+                return ret;
+        }
+
+        ret = init_otp_list();
+        if (ret < 0) {
+                return ret;
+        }
+
         return ret;
 }
 
@@ -25,7 +34,8 @@ static void __exit otp_exit_module(void)
 
         destroy_debugfs();
         destroy_devices();
-        
+
+        delete_all_otp_codes();
         pr_info("OTP Module Manager unloaded\n");
 }
 

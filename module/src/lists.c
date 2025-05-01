@@ -1,10 +1,39 @@
 #include "../include/lists.h"
 
 static DEFINE_MUTEX(otp_device_lock);
-static DEFINE_MUTEX(otp_code_lock);
+DEFINE_MUTEX(otp_code_lock);
 
 static LIST_HEAD(otp_device_list);
-static LIST_HEAD(otp_code_list);
+LIST_HEAD(otp_code_list);
+
+
+int init_otp_list(void)
+{
+    INIT_LIST_HEAD(&otp_code_list);
+    mutex_init(&otp_code_lock);
+
+    for (int i = 0; i < DEFAULT_LIST_SIZE; i++) {
+        int code = hotp_algo(HMAC_SHA1, "secret", "0" + i);
+        if (code < 0) {
+            pr_err("Failed to generate otp list\n");
+            return -1;
+        }
+        add_otp_code(code, 0);
+    }
+    print_list();
+    return 0;
+}
+
+void print_list(void)
+{
+    code_node *node;
+
+    mutex_lock(&otp_code_lock);
+    list_for_each_entry(node, &otp_code_list, list) {
+            pr_info("%d\n", node->code);
+    }
+    mutex_unlock(&otp_code_lock);
+}
 
 /**
  * @brief Initialize the OTP device and code lists.
@@ -188,6 +217,28 @@ int delete_otp_code(unsigned int code, unsigned int device_index)
     mutex_unlock(&otp_code_lock);
 
     pr_err("Failed to delete OTP code %u for device %u: not found\n", code, device_index);
+    return -ENOENT;
+}
+
+int delete_otp_code_by_index(unsigned int index, unsigned int device_index)
+{
+    code_node *entry, *tmp;
+    int i = 0;
+
+    mutex_lock(&otp_code_lock);
+    list_for_each_entry_safe(entry, tmp, &otp_code_list, list) {
+            if (i == index) {
+                    list_del(&entry->list);
+                    kfree(entry);
+                    pr_info("Deleted OTP device from the list\n");
+                    mutex_unlock(&otp_code_lock);
+                    return 0;
+            }
+            i++;
+    }
+    mutex_unlock(&otp_code_lock);
+
+    pr_err("OTP device with index %u not found\n", index);
     return -ENOENT;
 }
 

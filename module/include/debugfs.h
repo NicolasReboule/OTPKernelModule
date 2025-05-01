@@ -1,6 +1,8 @@
 #ifndef DEBUGFS_H
         #define DEBUGFS_H
 
+        #include "lists.h"
+
         #include <linux/debugfs.h>
 
         #define DIR_NAME "otp_manager"
@@ -12,8 +14,9 @@
 
         extern const struct file_operations debugfs_fops;
 
-        int init_debugfs(void);
+        //typedef struct otp_code_node_s code_node;
 
+        int init_debugfs(void);
         void destroy_debugfs(void);
 
 #endif /* !DEBUGFS_H */
