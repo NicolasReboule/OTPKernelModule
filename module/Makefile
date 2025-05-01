@@ -7,7 +7,7 @@ PWD		=	$(CURDIR)
 TARGET_KO	=	$(MODULE_NAME).ko
 
 obj-m	:=	$(MODULE_NAME).o
-otp_manager-objs	:=	src/module.o src/crypto.o src/device.o src/otp.o src/lists.o
+otp_manager-objs	:=	src/module.o src/crypto.o src/device.o src/otp.o src/lists.o src/debugfs.o
 
 ccflags-y	+=	-I$(PWD)/include
 
@@ -30,6 +30,8 @@ load:	all
 
 unload:	clean
 	@sudo rmmod -f $(MODULE_NAME)
+
+reload: unload load
 
 info:
 	@ls -la /dev/ | grep otp
