@@ -1,11 +1,39 @@
 #include "../include/device.h"
 
+const struct file_operations hotp_fops = {
+    .owner = THIS_MODULE,
+	.read = hotp_reader,
+	.write = hotp_writer,
+};
+
+const struct file_operations totp_fops = {
+    .owner = THIS_MODULE,
+	.read = totp_reader,
+	.write = totp_writer,
+};
+
+const struct file_operations validator_fops = {
+    .owner = THIS_MODULE,
+	.read = validator_reader,
+	.write = validator_writer,
+};
+
+static char validate_str[32];
+
+const struct file_operations device_fops[DEVICE_COUNT] = {hotp_fops, totp_fops, validator_fops};
 const char *device_names[DEVICE_COUNT] = {"hotp", "totp", "validator"};
 struct cdev cdevs[DEVICE_COUNT];
 struct device *devices[DEVICE_COUNT];
 dev_t dev_num;
 int major = 64;
 struct class *otp_class;
+
+static char *device_devnode(const struct device *dev, umode_t *mode)
+{
+    if (mode)
+        *mode = PERMISSIONS;
+    return NULL;
+}
 
 int create_devices(void)
 {
@@ -22,9 +50,10 @@ int create_devices(void)
             unregister_chrdev_region(dev_num, DEVICE_COUNT);
             return PTR_ERR(otp_class);
     }
+    otp_class->devnode = device_devnode;
 
     for (i = 0; i < DEVICE_COUNT; i++) {
-            cdev_init(&cdevs[i], &otp_fops);
+            cdev_init(&cdevs[i], &device_fops[i]);
             cdevs[i].owner = THIS_MODULE;
             ret = cdev_add(&cdevs[i], dev_num + i, 1);
             if (ret) {
@@ -115,4 +144,92 @@ void delete_otp_device(otp *dev)
     kfree(dev);
 
     pr_info("Deleted OTP device /dev/otp%d\n", dev->index);
+}
+
+ssize_t hotp_reader(struct file *f, char *buf, size_t len, loff_t *offset)
+{
+    size_t size;
+    char str[32];
+    int code;
+
+    if (*offset > 0)
+        return 0;
+
+    code = hotp_algo(HMAC_SHA1, "secret", "0");
+    size = snprintf(str, 32, "%d\n", code);
+    add_otp_code(code, 0);
+	return simple_read_from_buffer(buf, len, offset, str, size);
+}
+
+ssize_t hotp_writer(struct file *f, const char *buf, size_t len, loff_t *offset)
+{
+	return len;
+}
+
+ssize_t totp_reader(struct file *f, char *buf, size_t len, loff_t *offset)
+{
+    size_t size;
+    char str[32];
+    int code;
+
+    if (*offset > 0)
+        return 0;
+
+    code = hotp_algo(HMAC_SHA1, "secret", "0"); //TODO: Replace with totp
+    size = snprintf(str, 32, "%d\n", code);
+	return simple_read_from_buffer(buf, len, offset, str, size);
+}
+
+ssize_t totp_writer(struct file *f, const char *buf, size_t len, loff_t *offset)
+{
+	return len;
+}
+
+static bool validate_hotp(int code) {
+    code_node *node = find_otp_code(code, 0);
+    if (!node)
+        return false;
+    delete_otp_code(code, 0);
+    return true;
+}
+
+static bool validate_totp(int code) {
+    return false;
+}
+
+ssize_t validator_reader(struct file *f, char *buf, size_t len, loff_t *offset)
+{
+	return simple_read_from_buffer(buf, len, offset, validate_str, strlen(validate_str));
+}
+
+ssize_t validator_writer(struct file *f, const char *buf, size_t len, loff_t *offset)
+{
+    char input[32];
+    int code;
+
+    if (len > 32) {
+        pr_err("Failed to validate otp: input is longer than max size\n");
+        return -EINVAL;
+    }
+
+    if (copy_from_user(input, buf, len)) {
+        pr_err("Failed to copy input from user\n");
+        return -EFAULT;
+    }
+
+    input[len] = '\0';
+    input[strcspn(input, "\n")] = '\0';
+
+    if (kstrtoint(input, 10, &code) < 0) {
+        strcpy(validate_str, "0\n");
+        pr_err("Failed to convert arg to int\n");
+        return -EINVAL;
+    }
+
+    if (!validate_hotp(code) && !validate_totp(code)) {
+        strcpy(validate_str, "0\n");
+    } else {
+        strcpy(validate_str, "1\n");
+    }
+	return len;
 }

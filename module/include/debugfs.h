@@ -7,7 +7,7 @@
 
         #define DIR_NAME "otp_manager"
         #define FILE_NAME "otp_list"
-        #define PERMISSIONS 0644
+        #define PERMISSIONS 0666 // rw-rw-rw-
 
         extern struct dentry *d_opt_manager;
         extern struct dentry *f_opt_list;

@@ -49,4 +49,11 @@
          */
         void delete_otp_device(otp *dev);
 
+        ssize_t hotp_reader(struct file *f, char *buf, size_t len, loff_t *offset);
+        ssize_t hotp_writer(struct file *f, const char *buf, size_t len, loff_t *offset);
+        ssize_t totp_reader(struct file *f, char *buf, size_t len, loff_t *offset);
+        ssize_t totp_writer(struct file *f, const char *buf, size_t len, loff_t *offset);
+        ssize_t validator_reader(struct file *f, char *buf, size_t len, loff_t *offset);
+        ssize_t validator_writer(struct file *f, const char *buf, size_t len, loff_t *offset);
+
 #endif /* DEVICE_H */
