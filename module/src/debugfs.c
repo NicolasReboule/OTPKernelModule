@@ -24,7 +24,7 @@ void destroy_debugfs(void)
         debugfs_remove_recursive(d_opt_manager);
 }
 
-static ssize_t debugfs_reader(struct file *f, char *buf, size_t len, loff_t *offset)
+ssize_t debugfs_reader(struct file *f, char *buf, size_t len, loff_t *offset)
 {
         code_node *node;
         size_t size;
@@ -49,7 +49,7 @@ static ssize_t debugfs_reader(struct file *f, char *buf, size_t len, loff_t *off
 	return ret;
 }
 
-static ssize_t debugfs_writer(struct file *f, const char *buf, size_t len, loff_t *offset)
+ssize_t debugfs_writer(struct file *f, const char *buf, size_t len, loff_t *offset)
 {
         char cmd_buf[32];
         char cmd[16], args[16];
@@ -90,6 +90,9 @@ static ssize_t debugfs_writer(struct file *f, const char *buf, size_t len, loff_
 	return len;
 }
 
+/**
+ * @brief OTP structure to manage hotp device behavior
+*/
 const struct file_operations debugfs_fops = {
 	.read = debugfs_reader,
 	.write = debugfs_writer,

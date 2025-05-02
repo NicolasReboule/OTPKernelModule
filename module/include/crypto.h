@@ -18,7 +18,7 @@
         #define HMAC_SHA256 "hmac(sha256)"
         #define SECRET_MAX_LEN 64
 
-        extern int counter;
+        extern int counter; //Counter for algo pseudo randomness
 
         /**
          * @brief HOTP Algorithm

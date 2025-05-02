@@ -1,31 +1,41 @@
 #include "../include/device.h"
 
+
+/**
+ * @brief OTP structure to manage hotp device behavior
+*/
 const struct file_operations hotp_fops = {
     .owner = THIS_MODULE,
 	.read = hotp_reader,
 	.write = hotp_writer,
 };
 
+/**
+ * @brief OTP structure to manage hotp device behavior
+*/
 const struct file_operations totp_fops = {
     .owner = THIS_MODULE,
 	.read = totp_reader,
 	.write = totp_writer,
 };
 
+/**
+ * @brief OTP structure to manage hotp device behavior
+*/
 const struct file_operations validator_fops = {
     .owner = THIS_MODULE,
 	.read = validator_reader,
 	.write = validator_writer,
 };
 
-char HOTP_algo[16] = HMAC_SHA1;
-char HOTP_secret[64] = "hotp_secret";
+char HOTP_algo[16] = HMAC_SHA1; // Algorithm of hotp device
+char HOTP_secret[64] = "hotp_secret"; // Secret of hotp device
 
-char TOTP_algo[16] = HMAC_SHA1;
-char TOTP_secret[64] = "totp_secret";
-int TOTP_timestep = 30;
+char TOTP_algo[16] = HMAC_SHA1; // Algorithm of totp device
+char TOTP_secret[64] = "totp_secret"; // Secret of totp device
+int TOTP_timestep = 30; // Timestep of totp device
 
-static char validate_str[32];
+static char validate_str[32]; // Store the result of validation
 
 const struct file_operations device_fops[DEVICE_COUNT] = {hotp_fops, totp_fops, validator_fops};
 const char *device_names[DEVICE_COUNT] = {"hotp", "totp", "validator"};
@@ -35,7 +45,7 @@ dev_t dev_num;
 int major = 64;
 struct class *otp_class;
 
-static char *device_devnode(const struct device *dev, umode_t *mode)
+char *device_devnode(const struct device *dev, umode_t *mode)
 {
     if (mode)
         *mode = PERMISSIONS;
