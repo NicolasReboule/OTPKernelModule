@@ -373,6 +373,8 @@ static bool validate_totp(int code) {
     step = current_time / TOTP_timestep;
     set_counter_buffer(step, counter_buf);
     validate = hotp_algo(TOTP_algo, TOTP_secret, counter_buf);
+    if (validate != code)
+        pr_err("OTP code %d is not a valid totp\n", code);
     return validate == code;
 }
 

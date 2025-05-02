@@ -107,42 +107,42 @@ long otp_read(struct file *file, char __user *buf, size_t len, loff_t *off)
         return ret;
 }
 
-static otp *_manage_create_command(char *algo, char *secret, char *timestep, char *is_totp)
-{
-        struct otp_ioctl_create_s create_otp_data;
-        int ret;
+// static otp *_manage_create_command(char *algo, char *secret, char *timestep, char *is_totp)
+// {
+//         struct otp_ioctl_create_s create_otp_data;
+//         int ret;
 
-        if (algo == NULL || strcmp(algo, HMAC_SHA1) != 0 || strcmp(algo, HMAC_SHA256) != 0) {
-                pr_err("Invalid algorithm specified\n");
-                return NULL;
-        }
-        strncpy(create_otp_data.algo, algo, sizeof(create_otp_data.algo) - 1);
+//         if (algo == NULL || strcmp(algo, HMAC_SHA1) != 0 || strcmp(algo, HMAC_SHA256) != 0) {
+//                 pr_err("Invalid algorithm specified\n");
+//                 return NULL;
+//         }
+//         strncpy(create_otp_data.algo, algo, sizeof(create_otp_data.algo) - 1);
 
-        if (secret == NULL || strlen(secret) > SECRET_MAX_LEN) {
-                pr_err("Invalid secret specified\n");
-                return NULL;
-        }
-        strncpy(create_otp_data.secret, secret, sizeof(create_otp_data.secret) - 1);
+//         if (secret == NULL || strlen(secret) > SECRET_MAX_LEN) {
+//                 pr_err("Invalid secret specified\n");
+//                 return NULL;
+//         }
+//         strncpy(create_otp_data.secret, secret, sizeof(create_otp_data.secret) - 1);
 
-        int timestep_value = 0;
-        ret = kstrtoint(timestep, 10, &timestep_value);
-        if (ret != 0) {
-                pr_err("Failed to convert timestep to integer\n");
-                return NULL;
-        }
-        if (timestep == NULL || timestep_value <= 0) {
-                pr_err("Invalid timestep specified\n");
-                return NULL;
-        }
-        create_otp_data.timestep = timestep_value;
+//         int timestep_value = 0;
+//         ret = kstrtoint(timestep, 10, &timestep_value);
+//         if (ret != 0) {
+//                 pr_err("Failed to convert timestep to integer\n");
+//                 return NULL;
+//         }
+//         if (timestep == NULL || timestep_value <= 0) {
+//                 pr_err("Invalid timestep specified\n");
+//                 return NULL;
+//         }
+//         create_otp_data.timestep = timestep_value;
 
-        if (is_totp == NULL || (strcmp(is_totp, "true") != 0)) {
-                create_otp_data.is_totp = false;
-        }
-        create_otp_data.is_totp = (strcmp(is_totp, "true") == 0);
+//         if (is_totp == NULL || (strcmp(is_totp, "true") != 0)) {
+//                 create_otp_data.is_totp = false;
+//         }
+//         create_otp_data.is_totp = (strcmp(is_totp, "true") == 0);
 
-        return create_otp(&create_otp_data, false);;
-}
+//         return create_otp(&create_otp_data, false);;
+// }
 
 static otp *_manage_update_command(otp *otp, char *algo, char *secret, char *timestep)
 {
