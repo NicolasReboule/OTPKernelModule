@@ -18,6 +18,13 @@ const struct file_operations validator_fops = {
 	.write = validator_writer,
 };
 
+char HOTP_algo[16] = HMAC_SHA1;
+char HOTP_secret[64] = "hotp_secret";
+
+char TOTP_algo[16] = HMAC_SHA1;
+char TOTP_secret[64] = "totp_secret";
+int TOTP_timestep = 30;
+
 static char validate_str[32];
 
 const struct file_operations device_fops[DEVICE_COUNT] = {hotp_fops, totp_fops, validator_fops};
@@ -166,6 +173,76 @@ ssize_t hotp_reader(struct file *f, char *buf, size_t len, loff_t *offset)
 
 ssize_t hotp_writer(struct file *f, const char *buf, size_t len, loff_t *offset)
 {
+    char input[128];
+    char algo[16] = {0};
+    char secret[64] = {0};
+    char *token;
+    bool is_SHA1 = false;
+    bool is_SHA256 = false;
+
+    char old_algo[16];
+    char old_secret[64];
+
+    strcpy(old_algo, HOTP_algo);
+    strcpy(old_secret, HOTP_secret);
+
+    if (len >= sizeof(input)) {
+        pr_err("Input too long\n");
+        return -EINVAL;
+    }
+
+    if (copy_from_user(input, buf, len)) {
+        pr_err("Failed to copy input from user\n");
+        return -EFAULT;
+    }
+
+    input[len] = '\0';
+    input[strcspn(input, "\n")] = '\0';
+
+    // Parse the input
+    if (strncmp(input, "show", 4) == 0) {
+        pr_info("HOTP: algo=(%s), secret=(%s)\n", HOTP_algo, HOTP_secret);
+        return len;
+    } else if (strncmp(input, "update", 6) == 0) {
+        token = strstr(input, "-a ");
+        if (token) {
+            sscanf(token + 3, "%15s", algo);
+        }
+
+        token = strstr(input, "-s ");
+        if (token) {
+            sscanf(token + 3, "%63s", secret);
+        }
+
+        if (strlen(algo) == 0 || strlen(secret) == 0) {
+            pr_info(HOTP_HELP_MESSAGE);
+            return -EINVAL;
+        }
+
+        if (strcmp(algo, "SHA1") == 0) {
+            is_SHA1 = true;
+            strcpy(HOTP_algo, HMAC_SHA1);
+        } else if (strcmp(algo, "SHA256") == 0) {
+            is_SHA256 = true;
+            strcpy(HOTP_algo, HMAC_SHA256);
+        }
+
+        if (is_SHA1 == false && is_SHA256 == false) {
+            pr_info("Invalid algorithm. Use SHA1 or SHA256.\n");
+            return -EINVAL;
+        }
+
+        if (strlen(secret) > 64) {
+            pr_info("Secret too long. Max length is 64 characters.\n");
+            return -EINVAL;
+        }
+        strncpy(HOTP_secret, secret, sizeof(HOTP_secret) - 1);
+        pr_info("Updated HOTP: algo=(%s => %s), secret=(%s => %s)\n", old_algo, HOTP_algo, old_secret, HOTP_secret);
+    } else {
+        pr_info(HOTP_HELP_MESSAGE);
+        return -EINVAL;
+    }
+
 	return len;
 }
 
@@ -190,6 +267,91 @@ ssize_t totp_reader(struct file *f, char *buf, size_t len, loff_t *offset)
 
 ssize_t totp_writer(struct file *f, const char *buf, size_t len, loff_t *offset)
 {
+    char input[128];
+    char algo[16] = {0};
+    char secret[64] = {0};
+    char timestep[3] = {0};
+    char *token;
+    bool is_SHA1 = false;
+    bool is_SHA256 = false;
+
+    char old_algo[16];
+    char old_secret[64];
+    int old_timestep = TOTP_timestep;
+
+    strcpy(old_algo, HOTP_algo);
+    strcpy(old_secret, HOTP_secret);
+
+    if (len >= sizeof(input)) {
+        pr_err("Input too long\n");
+        return -EINVAL;
+    }
+
+    if (copy_from_user(input, buf, len)) {
+        pr_err("Failed to copy input from user\n");
+        return -EFAULT;
+    }
+
+    input[len] = '\0';
+    input[strcspn(input, "\n")] = '\0';
+
+    // Parse the input
+    if (strncmp(input, "show", 4) == 0) {
+        pr_info("TOTP: algo=(%s), secret=(%s)\n", HOTP_algo, HOTP_secret);
+    } else if (strncmp(input, "update", 6) == 0) {
+        token = strstr(input, "-a ");
+        if (token) {
+            sscanf(token + 3, "%15s", algo);
+        }
+
+        token = strstr(input, "-s ");
+        if (token) {
+            sscanf(token + 3, "%63s", secret);
+        }
+
+        token = strstr(input, "-t ");
+        if (token) {
+            sscanf(token + 3, "%3s", timestep);
+        }
+
+        if (strlen(algo) == 0 || strlen(secret) == 0) {
+            pr_info(TOTP_HELP_MESSAGE);
+            return -EINVAL;
+        }
+
+        if (strcmp(algo, "SHA1") == 0) {
+            is_SHA1 = true;
+            strcpy(HOTP_algo, HMAC_SHA1);
+        } else if (strcmp(algo, "SHA256") == 0) {
+            is_SHA256 = true;
+            strcpy(HOTP_algo, HMAC_SHA256);
+        }
+
+        if (is_SHA1 == false && is_SHA256 == false) {
+            pr_err("Invalid algorithm. Use SHA1 or SHA256.\n");
+            return -EINVAL;
+        }
+
+        if (strlen(secret) > 64) {
+            pr_err("Secret too long. Max length is 64 characters.\n");
+            return -EINVAL;
+        }
+        strncpy(HOTP_secret, secret, sizeof(HOTP_secret) - 1);
+
+        if (strlen(timestep) > 0) {
+            int timestep_value = 0;
+            if (kstrtoint(timestep, 10, &timestep_value) != 0 || timestep_value <= 0) {
+                pr_err("Invalid timestep value. Must be a positive integer.\n");
+                return -EINVAL;
+            }
+            TOTP_timestep = timestep_value;
+        }
+        pr_info("Updated TOTP:\nalgo=(%s => %s)\nsecret=(%s => %s)\ntimestep=(%d => %d)\n", old_algo, HOTP_algo, old_secret, HOTP_secret, old_timestep, TOTP_timestep);
+    } else {
+        pr_info(TOTP_HELP_MESSAGE);
+        return -EINVAL;
+    }
+
 	return len;
 }
 

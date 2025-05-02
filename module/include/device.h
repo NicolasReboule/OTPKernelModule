@@ -22,6 +22,9 @@
         #define CLASS_OTP_NAME "otp_class"
         #define DEVICE_COUNT 3
 
+        #define HOTP_HELP_MESSAGE "Usage:\nshow\t\t\tShow the current parameters\nupdate -a <algo> -s <secret>\tUpdate the parameters of the HOTP\n\t\t\talgo: SHA1 or SHA256\n\t\t\tsecret: secret key (max 64 characters)\n"
+        #define TOTP_HELP_MESSAGE "Usage:\nshow\t\t\tShow the current parameters\nupdate -a <algo> -s <secret> -t\tUpdate the parameters of the TOTP\n\t\t\talgo: SHA1 or SHA256\n\t\t\tsecret: secret key (max 64 characters)\n\t\t\ttimestep: timestep in seconds (default 30)\n"
+
         extern const char *device_names[DEVICE_COUNT];
         extern struct cdev cdevs[DEVICE_COUNT];
         extern struct device *devices[DEVICE_COUNT];
