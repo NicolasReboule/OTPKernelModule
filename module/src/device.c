@@ -151,11 +151,14 @@ ssize_t hotp_reader(struct file *f, char *buf, size_t len, loff_t *offset)
     size_t size;
     char str[32];
     int code;
+    char counter_buf[COUNTER_MAX_SIZE];
 
     if (*offset > 0)
         return 0;
 
-    code = hotp_algo(HMAC_SHA1, "secret", "0");
+    set_counter_buffer(counter, counter_buf);
+    counter++;
+    code = hotp_algo(HMAC_SHA1, "secret", counter_buf);
     size = snprintf(str, 32, "%d\n", code);
     add_otp_code(code, 0);
 	return simple_read_from_buffer(buf, len, offset, str, size);
@@ -171,11 +174,16 @@ ssize_t totp_reader(struct file *f, char *buf, size_t len, loff_t *offset)
     size_t size;
     char str[32];
     int code;
+    char counter_buf[COUNTER_MAX_SIZE];
+    unsigned long current_time;
+    unsigned long step;
 
     if (*offset > 0)
         return 0;
-
-    code = hotp_algo(HMAC_SHA1, "secret", "0"); //TODO: Replace with totp
+    current_time = jiffies_to_msecs(jiffies) / 1000;
+    step = current_time / 30;
+    set_counter_buffer(step, counter_buf);
+    code = hotp_algo(HMAC_SHA1, "secret", counter_buf);
     size = snprintf(str, 32, "%d\n", code);
 	return simple_read_from_buffer(buf, len, offset, str, size);
 }
@@ -194,7 +202,16 @@ static bool validate_hotp(int code) {
 }
 
 static bool validate_totp(int code) {
-    return false;
+    int validate;
+    char counter_buf[COUNTER_MAX_SIZE];
+    unsigned long current_time;
+    unsigned long step;
+
+    current_time = jiffies_to_msecs(jiffies) / 1000;
+    step = current_time / 30;
+    set_counter_buffer(step, counter_buf);
+    validate = hotp_algo(HMAC_SHA1, "secret", counter_buf);
+    return validate == code;
 }
 
 ssize_t validator_reader(struct file *f, char *buf, size_t len, loff_t *offset)

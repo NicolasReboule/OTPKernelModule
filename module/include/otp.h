@@ -17,7 +17,7 @@
         #define OTP_IOC_MAGIC 'K'
 
         #define OTP_INPUT_MAX_LEN 256
-        #define COUNTER_MAX_SIZE 8
+        #define COUNTER_MAX_SIZE 9
 
         #define IOCTL_CREATE_OTP _IOW(OTP_IOC_MAGIC, 1, struct otp_ioctl_create_s)
         #define IOCTL_UPDATE_OTP _IOW(OTP_IOC_MAGIC, 2, struct otp_ioctl_update_s)

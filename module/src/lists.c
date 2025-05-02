@@ -11,16 +11,18 @@ int init_otp_list(void)
 {
     INIT_LIST_HEAD(&otp_code_list);
     mutex_init(&otp_code_lock);
+    char counter_buf[COUNTER_MAX_SIZE];
 
     for (int i = 0; i < DEFAULT_LIST_SIZE; i++) {
-        int code = hotp_algo(HMAC_SHA1, "secret", "0" + i);
+        set_counter_buffer(counter, counter_buf);
+        counter++;
+        int code = hotp_algo(HMAC_SHA1, "secret", counter_buf);
         if (code < 0) {
             pr_err("Failed to generate otp list\n");
             return -1;
         }
         add_otp_code(code, 0);
     }
-    print_list();
     return 0;
 }
 

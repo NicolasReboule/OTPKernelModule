@@ -1,17 +1,19 @@
 #include "../include/crypto.h"
 
+int counter = 0;
+
 /**
  * @brief Internal function - Set the counter buffer
  *
  * @param counter Counter to set.
  * @param counter_buf Buffer to set.
  */
-void set_counter_buffer(unsigned int counter, unsigned char *counter_buf)
+void set_counter_buffer(unsigned int count, unsigned char *counter_buf)
 {
         for (int i = 7; i >= 0; i--) {
-                counter_buf[i] = counter & 0xff;
-                counter >>= 8;
+                counter_buf[i] = count & 0xff;
         }
+        counter_buf[8] = '\0';
 }
 
 /**
