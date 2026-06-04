@@ -45,26 +45,37 @@ The Makefile contains the following targets:
 
 1. Clone the repository:
 
-2. Run the `make load` command to build and load the kernel module:
+
+```bash
+$ git clone https://github.com/NicolasReboule/OTPKernelModule.git
+```
+
+2. Go inside the `module` folder
+
+```bash
+$ cd OTPKernelModule/module
+```
+
+3. Run the `make load` command to build and load the kernel module:
 
 ```bash
 $ make load
 ```
 
-3. Check the kernel log for module information:
+4. Check the kernel log for module information:
 
 ```bash
 $ make log
 ```
 
-4. Use the `devices` interfaces to interact with the module:
+5. Use the `devices` interfaces to interact with the module:
 
 ```bash
 $ cat /dev/otp-hotp
 $ 123456
 ```
 
-5. Use the generatad otp to use the client
+6. Use the generatad otp to use the client
 
 ```bash
 $ cd client
